@@ -1,2 +1,2 @@
 # Unity studies
-A collection of little and dumy projects just form studing Unity game development.
+A collection of little and dumy projects just for studing Unity game development.
