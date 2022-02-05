@@ -66,7 +66,7 @@ public class MeshGenerator : MonoBehaviour
         // triangles = new int[] {
         //     0, 1, 2,
         //     1, 3, 2
-        // };
+        // }
     }
 
     private void UpdateMesh()
@@ -77,6 +77,8 @@ public class MeshGenerator : MonoBehaviour
         this.mesh.triangles = this.triangles;
 
         this.mesh.RecalculateNormals();
+        this.mesh.RecalculateTangents();
+        GetComponent<MeshCollider>().sharedMesh = this.mesh;
     }
 
     private void OnDrawGizmos()

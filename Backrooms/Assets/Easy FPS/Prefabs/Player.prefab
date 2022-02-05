@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2006704}
   - component: {fileID: 12459126}
   - component: {fileID: 8154184}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -112,7 +112,7 @@ GameObject:
   - component: {fileID: 11415148}
   - component: {fileID: 11478776}
   - component: {fileID: 11414154}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: -964228994112308473, guid: 0000000000000000d000000000000000, type: 0}
@@ -215,7 +215,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!114 &11415148
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -310,7 +310,7 @@ GameObject:
   m_Component:
   - component: {fileID: 409796}
   - component: {fileID: 2024722}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Camera
   m_TagString: SecondCamera
   m_Icon: {fileID: 0}
@@ -384,7 +384,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4730053225657608}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: _playerSounds
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -424,7 +424,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4532061015433470}
   - component: {fileID: 82006501625295052}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: _die_02
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -552,7 +552,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4525795894402938}
   - component: {fileID: 82784591334345954}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: _waeponChangingSound
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -680,7 +680,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4909484268391186}
   - component: {fileID: 82072754584320168}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: _freakingZombies
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -808,7 +808,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4436234417891686}
   - component: {fileID: 82190838427811640}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: _jumpSound
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -936,7 +936,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4311107216363778}
   - component: {fileID: 82248981901151284}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: _walkSound
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1064,7 +1064,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4257568553513874}
   - component: {fileID: 82987821035134148}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: _die_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1192,7 +1192,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4455057915233520}
   - component: {fileID: 82378112336842120}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: _runSoun
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1319,7 +1319,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4768776281712228}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: BulletSpawn
   m_TagString: BulletSpawn
   m_Icon: {fileID: 0}
@@ -1351,7 +1351,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4192255841907586}
   - component: {fileID: 82102465769777700}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: _hitSound
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1480,7 +1480,7 @@ GameObject:
   - component: {fileID: 3751648873895759555}
   - component: {fileID: 7726759266339152606}
   - component: {fileID: 7493011505000839017}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: HUD_bullets
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1615,7 +1615,7 @@ GameObject:
   - component: {fileID: 2129856027233623105}
   - component: {fileID: 7082150391223985910}
   - component: {fileID: 6994058911871722994}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: first_weapon_slot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1692,7 +1692,7 @@ GameObject:
   - component: {fileID: 7807427190609799084}
   - component: {fileID: 3345343154791399814}
   - component: {fileID: 6427964697448879064}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: second_weapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1768,7 +1768,7 @@ GameObject:
   - component: {fileID: 1621197049198629339}
   - component: {fileID: 7644047924874577773}
   - component: {fileID: 1410718420250824909}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: second_weapon_slot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1846,7 +1846,7 @@ GameObject:
   - component: {fileID: 1849031628659550831}
   - component: {fileID: 1083487657332729234}
   - component: {fileID: 8398561863732020968}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: HUD_Inventory
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1948,7 +1948,7 @@ GameObject:
   - component: {fileID: 596344299870109953}
   - component: {fileID: 6770506077371326087}
   - component: {fileID: 7364343535563353315}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: first_weapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}

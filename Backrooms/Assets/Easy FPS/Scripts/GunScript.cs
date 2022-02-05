@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using TMPro;
-//using UnityStandardAssets.ImageEffects;
 
 public enum GunStyles
 {
