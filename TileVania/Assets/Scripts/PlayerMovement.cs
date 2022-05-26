@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float jumpSpeed = 10f;
     [SerializeField] float climbingSpeed = 3f;
     [SerializeField] ParticleSystem myParticleSystem;
+    [SerializeField] GameObject myGun;
+    [SerializeField] GameObject bullet;
     float playerGravity = 4f;
     Vector2 inputValue;
 
@@ -89,6 +92,16 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    void OnFire(InputValue inputValue)
+    {
+        if (this.isAlive)
+        {
+            GameObject bullet = Instantiate(this.bullet, this.myGun.transform.position, this.myGun.transform.rotation);
+            bullet.GetComponent<Rigidbody2D>().velocity = new Vector2(this.transform.localScale.x * 20f, 2f);
+            Destroy(bullet, 1f);
+        }
+    }
+
     bool IsPlayerRunning()
     {
         return Mathf.Abs(this.myRigidbody2D.velocity.x) > Mathf.Epsilon;
@@ -101,7 +114,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D other)
     {
-        if (other.gameObject.tag == "Enemy")
+        if (other.gameObject.tag == "Enemy" || other.gameObject.tag == "Spike")
         {
             Die();
         }
@@ -112,5 +125,6 @@ public class PlayerMovement : MonoBehaviour
         this.isAlive = false;
         this.myAnimator.SetTrigger("Dead");
         this.myParticleSystem.Play();
+        FindObjectOfType<GameSession>().ProccessPlayerDeath();
     }
 }

@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Enemy
+  - Spike
+  - Bullet
   layers:
   - Default
   - TransparentFX
@@ -18,9 +20,9 @@ TagManager:
   - Background
   - Bouncing
   - Slimes
-  - 
-  - 
-  - 
+  - Spikes
+  - Bullets
+  - Interactables
   - 
   - 
   - 
@@ -54,9 +56,18 @@ TagManager:
   - name: Ladder
     uniqueID: 3996500909
     locked: 0
+  - name: Spikes
+    uniqueID: 3598062755
+    locked: 0
   - name: Player
     uniqueID: 3158788437
     locked: 0
   - name: Enemy
     uniqueID: 654757993
+    locked: 0
+  - name: Bullets
+    uniqueID: 60719155
+    locked: 0
+  - name: Interactables
+    uniqueID: 1128628379
     locked: 0
