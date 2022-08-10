@@ -1,48 +1,142 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
+using UnityEngine;
+
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMovementScript : MonoBehaviour
 {
-    Rigidbody rb;
+    [Tooltip("Current players speed")] public float currentSpeed;
 
-    [Tooltip("Current players speed")]
-    public float currentSpeed;
-    [Tooltip("Assign players camera here")]
-    [HideInInspector] public Transform cameraMain;
+    [Tooltip("Assign players camera here")] [HideInInspector]
+    public Transform cameraMain;
+
     [Tooltip("Force that moves player into jump")]
     public float jumpForce = 500;
-    [Tooltip("Position of the camera inside the player")]
-    [HideInInspector] public Vector3 cameraPosition;
+
+    [Tooltip("Position of the camera inside the player")] [HideInInspector]
+    public Vector3 cameraPosition;
+
+
+    [Tooltip("The maximum speed you want to achieve")]
+    public int maxSpeed = 5;
+
+    [Tooltip("The higher the number the faster it will stop")]
+    public float deaccelerationSpeed = 15.0f;
+
+
+    [Tooltip("Force that is applied when moving forward or backward")]
+    public float accelerationSpeed = 50000.0f;
+
+
+    [Tooltip("Tells us weather the player is grounded or not.")]
+    public bool grounded;
+
+    [Tooltip("Put BulletSpawn gameobject here, palce from where bullets are created.")] [HideInInspector]
+    public Transform bulletSpawn; //from here we shoot a ray to check where we hit him;
+    /*
+	* This method casts 9 rays in different directions. ( SEE scene tab and you will see 9 rays differently coloured).
+	* Used to widley detect enemy infront and increase meele hit detectivity.
+	* Checks for cooldown after last preformed meele attack.
+	*/
+
+
+    public bool been_to_meele_anim;
+
+    [Tooltip("Put your particle blood effect here.")]
+    public GameObject bloodEffect; //blod effect prefab;
+
+
+    [Header("Player SOUNDS")] [Tooltip("Jump sound when player jumps.")]
+    public AudioSource _jumpSound;
+
+    [Tooltip("Sound while player makes when successfully reloads weapon.")]
+    public AudioSource _freakingZombiesSound;
+
+    [Tooltip("Sound Bullet makes when hits target.")]
+    public AudioSource _hitSound;
+
+    [Tooltip("Walk sound player makes.")] public AudioSource _walkSound;
+    [Tooltip("Run Sound player makes.")] public AudioSource _runSound;
+    private string currentWeapo;
+
+    [Header("BloodForMelleAttaacks")] private RaycastHit hit; //stores info of hit;
+
+
+    private RaycastHit hitInfo;
+
+    private Vector2 horizontalMovement;
+
+    [Tooltip("Put 'Player' layer here")] [Header("Shooting Properties")]
+    private LayerMask ignoreLayer; //to ignore player layer
+
+    private float meleeAttack_cooldown;
+
+    private GameObject myBloodEffect;
+    private readonly float offsetStart = 0.05f;
+
+    private Ray ray1, ray2, ray3, ray4, ray5, ray6, ray7, ray8, ray9;
+    private readonly float rayDetectorMeeleSpace = 0.15f;
+    private Rigidbody rb;
+
+    private Vector3 slowdownV;
 
     /*
 	 * Getting the Players rigidbody component.
 	 * And grabbing the mainCamera from Players child transform.
 	 */
-    void Awake()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         cameraMain = transform.Find("Main Camera").transform;
         bulletSpawn = cameraMain.Find("BulletSpawn").transform;
         ignoreLayer = 1 << LayerMask.NameToLayer("Player");
-
     }
-    private Vector3 slowdownV;
-    private Vector2 horizontalMovement;
+
+    /*
+	* Update loop calling other stuff
+	*/
+    private void Update()
+    {
+        Jumping();
+
+        Crouching();
+
+        WalkingSound();
+    } //end update
+
     /*
 	* Raycasting for meele attacks and input movement handling here.
 	*/
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         RaycastForMeleeAttacks();
 
         PlayerMovementLogic();
     }
+
+    /*
+	* On collision exit set grounded to false
+	*/
+    private void OnCollisionExit()
+    {
+        grounded = false;
+    }
+
+    /*
+	* checks if our player is contacting the ground in the angle less than 60 degrees
+	*	if it is, set groudede to true
+	*/
+    private void OnCollisionStay(Collision other)
+    {
+        foreach (var contact in other.contacts)
+            if (Vector2.Angle(contact.normal, Vector3.up) < 60)
+                grounded = true;
+    }
+
     /*
 	* Accordingly to input adds force and if magnitude is bigger it will clamp it.
 	* If player leaves keys it will deaccelerate
 	*/
-    void PlayerMovementLogic()
+    private void PlayerMovementLogic()
     {
         currentSpeed = rb.velocity.magnitude;
         horizontalMovement = new Vector2(rb.velocity.x, rb.velocity.z);
@@ -51,44 +145,38 @@ public class PlayerMovementScript : MonoBehaviour
             horizontalMovement = horizontalMovement.normalized;
             horizontalMovement *= maxSpeed;
         }
+
         rb.velocity = new Vector3(
             horizontalMovement.x,
             rb.velocity.y,
             horizontalMovement.y
         );
         if (grounded)
-        {
             rb.velocity = Vector3.SmoothDamp(rb.velocity,
                 new Vector3(0, rb.velocity.y, 0),
                 ref slowdownV,
                 deaccelerationSpeed);
-        }
 
         if (grounded)
-        {
-            rb.AddRelativeForce(Input.GetAxis("Horizontal") * accelerationSpeed * Time.deltaTime, 0, Input.GetAxis("Vertical") * accelerationSpeed * Time.deltaTime);
-        }
+            rb.AddRelativeForce(Input.GetAxis("Horizontal") * accelerationSpeed * Time.deltaTime, 0,
+                Input.GetAxis("Vertical") * accelerationSpeed * Time.deltaTime);
         else
-        {
-            rb.AddRelativeForce(Input.GetAxis("Horizontal") * accelerationSpeed / 2 * Time.deltaTime, 0, Input.GetAxis("Vertical") * accelerationSpeed / 2 * Time.deltaTime);
+            rb.AddRelativeForce(Input.GetAxis("Horizontal") * accelerationSpeed / 2 * Time.deltaTime, 0,
+                Input.GetAxis("Vertical") * accelerationSpeed / 2 * Time.deltaTime);
 
-        }
         /*
 		 * Slippery issues fixed here
 		 */
         if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
-        {
             deaccelerationSpeed = 0.5f;
-        }
         else
-        {
             deaccelerationSpeed = 0.1f;
-        }
     }
+
     /*
 	* Handles jumping and ads the force and sounds.
 	*/
-    void Jumping()
+    private void Jumping()
     {
         if (Input.GetKeyDown(KeyCode.Space) && grounded)
         {
@@ -101,29 +189,17 @@ public class PlayerMovementScript : MonoBehaviour
             _runSound.Stop();
         }
     }
-    /*
-	* Update loop calling other stuff
-	*/
-    void Update()
-    {
-        Jumping();
-
-        Crouching();
-
-        WalkingSound();
-
-
-    }//end update
 
     /*
 	* Checks if player is grounded and plays the sound accorindlgy to his speed
 	*/
-    void WalkingSound()
+    private void WalkingSound()
     {
         if (_walkSound && _runSound)
         {
             if (RayCastGrounded())
-            { //for walk sounsd using this because suraface is not straigh			
+            {
+                //for walk sounsd using this because suraface is not straigh			
                 if (currentSpeed > 1)
                 {
                     //				print ("unutra sam");
@@ -165,8 +241,8 @@ public class PlayerMovementScript : MonoBehaviour
         {
             print("Missing walk and running sounds.");
         }
-
     }
+
     /*
 	* Raycasts down to check if we are grounded along the gorunded method() because if the
 	* floor is curvy it will go ON/OFF constatly this assures us if we are really grounded
@@ -178,15 +254,9 @@ public class PlayerMovementScript : MonoBehaviour
         {
             Debug.DrawRay(transform.position, transform.up * -1f, Color.red, 0.0f);
             if (groundedInfo.transform != null)
-            {
                 //print ("vracam true");
                 return true;
-            }
-            else
-            {
-                //print ("vracam false");
-                return false;
-            }
+            return false;
         }
         //print ("nisam if dosao");
 
@@ -196,105 +266,47 @@ public class PlayerMovementScript : MonoBehaviour
     /*
 	* If player toggle the crouch it will scale the player to appear that is crouching
 	*/
-    void Crouching()
+    private void Crouching()
     {
         if (Input.GetKey(KeyCode.C))
-        {
             transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(1, 0.6f, 1), Time.deltaTime * 15);
-        }
         else
-        {
             transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(1, 1, 1), Time.deltaTime * 15);
-
-        }
     }
 
-
-    [Tooltip("The maximum speed you want to achieve")]
-    public int maxSpeed = 5;
-    [Tooltip("The higher the number the faster it will stop")]
-    public float deaccelerationSpeed = 15.0f;
-
-
-    [Tooltip("Force that is applied when moving forward or backward")]
-    public float accelerationSpeed = 50000.0f;
-
-
-    [Tooltip("Tells us weather the player is grounded or not.")]
-    public bool grounded;
-    /*
-	* checks if our player is contacting the ground in the angle less than 60 degrees
-	*	if it is, set groudede to true
-	*/
-    void OnCollisionStay(Collision other)
-    {
-        foreach (ContactPoint contact in other.contacts)
-        {
-            if (Vector2.Angle(contact.normal, Vector3.up) < 60)
-            {
-                grounded = true;
-            }
-        }
-    }
-    /*
-	* On collision exit set grounded to false
-	*/
-    void OnCollisionExit()
-    {
-        grounded = false;
-    }
-
-
-    RaycastHit hitInfo;
-    private float meleeAttack_cooldown;
-    private string currentWeapo;
-    [Tooltip("Put 'Player' layer here")]
-    [Header("Shooting Properties")]
-    private LayerMask ignoreLayer;//to ignore player layer
-    Ray ray1, ray2, ray3, ray4, ray5, ray6, ray7, ray8, ray9;
-    private float rayDetectorMeeleSpace = 0.15f;
-    private float offsetStart = 0.05f;
-    [Tooltip("Put BulletSpawn gameobject here, palce from where bullets are created.")]
-    [HideInInspector]
-    public Transform bulletSpawn; //from here we shoot a ray to check where we hit him;
-    /*
-	* This method casts 9 rays in different directions. ( SEE scene tab and you will see 9 rays differently coloured).
-	* Used to widley detect enemy infront and increase meele hit detectivity.
-	* Checks for cooldown after last preformed meele attack.
-	*/
-
-
-    public bool been_to_meele_anim = false;
     private void RaycastForMeleeAttacks()
     {
-
-
-
-
-        if (meleeAttack_cooldown > -5)
-        {
-            meleeAttack_cooldown -= 1 * Time.deltaTime;
-        }
+        if (meleeAttack_cooldown > -5) meleeAttack_cooldown -= 1 * Time.deltaTime;
 
 
         if (GetComponent<GunInventory>().currentGun)
-        {
             if (GetComponent<GunInventory>().currentGun.GetComponent<GunScript>())
                 currentWeapo = "gun";
-        }
 
         //middle row
-        ray1 = new Ray(bulletSpawn.position + (bulletSpawn.right * offsetStart), bulletSpawn.forward + (bulletSpawn.right * rayDetectorMeeleSpace));
-        ray2 = new Ray(bulletSpawn.position - (bulletSpawn.right * offsetStart), bulletSpawn.forward - (bulletSpawn.right * rayDetectorMeeleSpace));
+        ray1 = new Ray(bulletSpawn.position + bulletSpawn.right * offsetStart,
+            bulletSpawn.forward + bulletSpawn.right * rayDetectorMeeleSpace);
+        ray2 = new Ray(bulletSpawn.position - bulletSpawn.right * offsetStart,
+            bulletSpawn.forward - bulletSpawn.right * rayDetectorMeeleSpace);
         ray3 = new Ray(bulletSpawn.position, bulletSpawn.forward);
         //upper row
-        ray4 = new Ray(bulletSpawn.position + (bulletSpawn.right * offsetStart) + (bulletSpawn.up * offsetStart), bulletSpawn.forward + (bulletSpawn.right * rayDetectorMeeleSpace) + (bulletSpawn.up * rayDetectorMeeleSpace));
-        ray5 = new Ray(bulletSpawn.position - (bulletSpawn.right * offsetStart) + (bulletSpawn.up * offsetStart), bulletSpawn.forward - (bulletSpawn.right * rayDetectorMeeleSpace) + (bulletSpawn.up * rayDetectorMeeleSpace));
-        ray6 = new Ray(bulletSpawn.position + (bulletSpawn.up * offsetStart), bulletSpawn.forward + (bulletSpawn.up * rayDetectorMeeleSpace));
+        ray4 = new Ray(bulletSpawn.position + bulletSpawn.right * offsetStart + bulletSpawn.up * offsetStart,
+            bulletSpawn.forward + bulletSpawn.right * rayDetectorMeeleSpace +
+            bulletSpawn.up * rayDetectorMeeleSpace);
+        ray5 = new Ray(bulletSpawn.position - bulletSpawn.right * offsetStart + bulletSpawn.up * offsetStart,
+            bulletSpawn.forward - bulletSpawn.right * rayDetectorMeeleSpace +
+            bulletSpawn.up * rayDetectorMeeleSpace);
+        ray6 = new Ray(bulletSpawn.position + bulletSpawn.up * offsetStart,
+            bulletSpawn.forward + bulletSpawn.up * rayDetectorMeeleSpace);
         //bottom row
-        ray7 = new Ray(bulletSpawn.position + (bulletSpawn.right * offsetStart) - (bulletSpawn.up * offsetStart), bulletSpawn.forward + (bulletSpawn.right * rayDetectorMeeleSpace) - (bulletSpawn.up * rayDetectorMeeleSpace));
-        ray8 = new Ray(bulletSpawn.position - (bulletSpawn.right * offsetStart) - (bulletSpawn.up * offsetStart), bulletSpawn.forward - (bulletSpawn.right * rayDetectorMeeleSpace) - (bulletSpawn.up * rayDetectorMeeleSpace));
-        ray9 = new Ray(bulletSpawn.position - (bulletSpawn.up * offsetStart), bulletSpawn.forward - (bulletSpawn.up * rayDetectorMeeleSpace));
+        ray7 = new Ray(bulletSpawn.position + bulletSpawn.right * offsetStart - bulletSpawn.up * offsetStart,
+            bulletSpawn.forward + bulletSpawn.right * rayDetectorMeeleSpace -
+            bulletSpawn.up * rayDetectorMeeleSpace);
+        ray8 = new Ray(bulletSpawn.position - bulletSpawn.right * offsetStart - bulletSpawn.up * offsetStart,
+            bulletSpawn.forward - bulletSpawn.right * rayDetectorMeeleSpace -
+            bulletSpawn.up * rayDetectorMeeleSpace);
+        ray9 = new Ray(bulletSpawn.position - bulletSpawn.up * offsetStart,
+            bulletSpawn.forward - bulletSpawn.up * rayDetectorMeeleSpace);
 
         Debug.DrawRay(ray1.origin, ray1.direction, Color.cyan);
         Debug.DrawRay(ray2.origin, ray2.direction, Color.cyan);
@@ -309,10 +321,10 @@ public class PlayerMovementScript : MonoBehaviour
         if (GetComponent<GunInventory>().currentGun)
         {
             if (GetComponent<GunInventory>().currentGun.GetComponent<GunScript>().meeleAttack == false)
-            {
                 been_to_meele_anim = false;
-            }
-            if (GetComponent<GunInventory>().currentGun.GetComponent<GunScript>().meeleAttack == true && been_to_meele_anim == false)
+
+            if (GetComponent<GunInventory>().currentGun.GetComponent<GunScript>().meeleAttack &&
+                been_to_meele_anim == false)
             {
                 been_to_meele_anim = true;
                 //	if (isRunning == false) {
@@ -320,44 +332,39 @@ public class PlayerMovementScript : MonoBehaviour
                 //	}
             }
         }
-
     }
 
     /*
 	 *Method that is called if the waepon hit animation has been triggered the first time via Q input
 	 *and if is, it will search for target and make damage
 	 */
-    IEnumerator MeeleAttackWeaponHit()
+    private IEnumerator MeeleAttackWeaponHit()
     {
-        if (Physics.Raycast(ray1, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast(ray2, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast(ray3, out hitInfo, 2f, ~ignoreLayer)
-            || Physics.Raycast(ray4, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast(ray5, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast(ray6, out hitInfo, 2f, ~ignoreLayer)
-            || Physics.Raycast(ray7, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast(ray8, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast(ray9, out hitInfo, 2f, ~ignoreLayer))
-        {
+        if (Physics.Raycast(ray1, out hitInfo, 2f, ~ignoreLayer) ||
+            Physics.Raycast(ray2, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast(ray3, out hitInfo, 2f, ~ignoreLayer)
+            || Physics.Raycast(ray4, out hitInfo, 2f, ~ignoreLayer) ||
+            Physics.Raycast(ray5, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast(ray6, out hitInfo, 2f, ~ignoreLayer)
+            || Physics.Raycast(ray7, out hitInfo, 2f, ~ignoreLayer) ||
+            Physics.Raycast(ray8, out hitInfo, 2f, ~ignoreLayer) ||
+            Physics.Raycast(ray9, out hitInfo, 2f, ~ignoreLayer))
             //Debug.DrawRay (bulletSpawn.position, bulletSpawn.forward + (bulletSpawn.right*0.2f), Color.green, 0.0f);
             if (hitInfo.transform.tag == "Enemy")
             {
-                Transform _other = hitInfo.transform.root.transform;
-                if (_other.transform.tag == "Enemy")
-                {
-                    print("hit a enemy");
-                }
+                var _other = hitInfo.transform.root.transform;
+                if (_other.transform.tag == "Enemy") print("hit a enemy");
+
                 InstantiateBlood(hitInfo, false);
             }
-        }
+
         yield return new WaitForEndOfFrame();
     }
 
-    [Header("BloodForMelleAttaacks")]
-    RaycastHit hit;//stores info of hit;
-    [Tooltip("Put your particle blood effect here.")]
-    public GameObject bloodEffect;//blod effect prefab;
     /*
 	* Upon hitting enemy it calls this method, gives it raycast hit info 
 	* and at that position it creates our blood prefab.
 	*/
-    void InstantiateBlood(RaycastHit _hitPos, bool swordHitWithGunOrNot)
+    private void InstantiateBlood(RaycastHit _hitPos, bool swordHitWithGunOrNot)
     {
-
         if (currentWeapo == "gun")
         {
             GunScript.HitMarkerSound();
@@ -376,19 +383,4 @@ public class PlayerMovementScript : MonoBehaviour
             }
         }
     }
-    private GameObject myBloodEffect;
-
-
-    [Header("Player SOUNDS")]
-    [Tooltip("Jump sound when player jumps.")]
-    public AudioSource _jumpSound;
-    [Tooltip("Sound while player makes when successfully reloads weapon.")]
-    public AudioSource _freakingZombiesSound;
-    [Tooltip("Sound Bullet makes when hits target.")]
-    public AudioSource _hitSound;
-    [Tooltip("Walk sound player makes.")]
-    public AudioSource _walkSound;
-    [Tooltip("Run Sound player makes.")]
-    public AudioSource _runSound;
 }
-

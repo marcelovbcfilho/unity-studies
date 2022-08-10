@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2006704}
   - component: {fileID: 12459126}
   - component: {fileID: 8154184}
+  - component: {fileID: 1229986477}
   m_Layer: 3
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -27,7 +28,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 102540}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -97,6 +98,19 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 102540}
   m_Enabled: 1
+--- !u!114 &1229986477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102540}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff26db721962cdf4a8edcdfa9a767d2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 1a6b82691ab3618b0b80b0b3fbbf6410, type: 2}
 --- !u!1 &173116
 GameObject:
   m_ObjectHideFlags: 0
@@ -316,6 +330,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   killCount: 0
   health: 100
+  alive: 1
   healthBar: {fileID: 342716044}
 --- !u!1 &196378
 GameObject:
@@ -711,7 +726,7 @@ RectTransform:
   m_GameObject: {fileID: 973179785}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 80, y: 30, z: 1}
+  m_LocalScale: {x: 60, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 342716043}
@@ -720,8 +735,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -370.5, y: -228.3}
-  m_SizeDelta: {x: -1097, y: -512.5}
+  m_AnchoredPosition: {x: -391.5, y: -229.5}
+  m_SizeDelta: {x: -1097, y: -511}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &973179788
 CanvasRenderer:

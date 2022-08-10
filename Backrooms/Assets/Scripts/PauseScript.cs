@@ -1,29 +1,22 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PauseScript : MonoBehaviour
 {
-    public static bool GameIsPaused = false;
+    public static bool GameIsPaused;
 
-    [Tooltip("Pause menu canvas")]
-    public GameObject pauseMenuUI;
+    [Tooltip("Pause menu canvas")] public GameObject pauseMenuUI;
 
-    [Tooltip("Pause menu canvas")]
-    public List<GameObject> playerUIs = new List<GameObject>();
+    [Tooltip("Pause menu canvas")] public List<GameObject> playerUIs = new();
 
-    void Update()
+    private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (GameIsPaused)
-            {
-                this.Play();
-            }
+                Play();
             else
-            {
-                this.Pause();
-            }
+                Pause();
         }
     }
 
@@ -31,8 +24,8 @@ public class PauseScript : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         GameIsPaused = false;
-        this.pauseMenuUI.SetActive(false);
-        this.ToggleOtherPlayerUIs();
+        pauseMenuUI.SetActive(false);
+        ToggleOtherPlayerUIs();
         Time.timeScale = 1f;
     }
 
@@ -40,8 +33,8 @@ public class PauseScript : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.None;
         GameIsPaused = true;
-        this.pauseMenuUI.SetActive(true);
-        this.ToggleOtherPlayerUIs();
+        pauseMenuUI.SetActive(true);
+        ToggleOtherPlayerUIs();
         Time.timeScale = 0f;
     }
 
@@ -50,11 +43,8 @@ public class PauseScript : MonoBehaviour
         Application.Quit();
     }
 
-    void ToggleOtherPlayerUIs()
+    private void ToggleOtherPlayerUIs()
     {
-        foreach (GameObject playerUI in this.playerUIs)
-        {
-            playerUI.SetActive(!GameIsPaused);
-        }
+        foreach (var playerUI in playerUIs) playerUI.SetActive(!GameIsPaused);
     }
 }

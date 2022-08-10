@@ -1,124 +1,113 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class EnemyController : MonoBehaviour
 {
-    [Header("Enemy objects")]
-    [Tooltip("Blood prefab particle that will be displayed when enemy dies")]
+    private static readonly int Running = Animator.StringToHash("running");
+
+    [Header("Enemy objects")] [Tooltip("Blood prefab particle that will be displayed when enemy dies")]
     public GameObject bloodEffect;
 
-    [Tooltip("Target to follow")]
-    private Transform target;
-
-    [Tooltip("Animator controller")]
-    public Animator animator;
+    [Tooltip("Animator controller")] public Animator animator;
 
     [Tooltip("Current colliding controller")]
     public PlayerController playerController;
 
-    [Header("Enemy status")]
-    [Tooltip("Enemy health")]
+    [Header("Enemy status")] [Tooltip("Enemy health")]
     public float health = 100;
 
-    [Tooltip("Enemy speed")]
-    public float speed = 4f;
+    [Tooltip("Enemy speed")] public float speed = 4f;
 
-    [Tooltip("Is alive ?")]
-    public bool alive = true;
+    [Tooltip("Is alive ?")] public bool alive = true;
 
-    [Tooltip("Touching player")]
-    public bool touchingPlayer = false;
+    [Tooltip("Touching player")] public bool touchingPlayer;
 
-    [Header("Enemy UI")]
-    [Tooltip("Enemy health bar")]
+    [Header("Enemy UI")] [Tooltip("Enemy health bar")]
     public Image healthBar;
 
-    [Tooltip("Enemy canvas UI")]
-    public Canvas ui;
+    [Tooltip("Enemy canvas UI")] public Canvas ui;
 
-    private bool playerFound = false;
+    private bool _playerFound;
+
+    [Tooltip("Target to follow")] private Transform _target;
 
     private void Awake()
     {
-        this.target = GameObject.FindGameObjectWithTag("Player").transform;
-        this.animator = this.GetComponentInChildren<Animator>();
+        _target = GameObject.FindGameObjectWithTag("Player").transform;
+        animator = GetComponentInChildren<Animator>();
     }
 
     private void FixedUpdate()
     {
-        if (this.alive)
+        if (alive)
         {
-            if (Mathf.Abs(this.transform.position.x - this.target.position.x) < 6 && Mathf.Abs(this.transform.position.z - this.target.position.z) < 6)
-            {
-                this.playerFound = true;
-            }
+            if (Mathf.Abs(transform.position.x - _target.position.x) < 6 &&
+                Mathf.Abs(transform.position.z - _target.position.z) < 6) _playerFound = true;
 
-            if (this.playerFound)
+            if (_playerFound)
             {
-                transform.position = Vector3.MoveTowards(this.transform.position, this.target.position, this.speed * Time.deltaTime);
-                this.animator.SetBool("running", true);
+                transform.position = Vector3.MoveTowards(transform.position, _target.position, speed * Time.deltaTime);
+                animator.SetBool(Running, true);
             }
         }
     }
 
     private void LateUpdate()
     {
-        if (this.alive)
+        if (alive)
         {
-            this.ui.transform.LookAt(this.target);
-            this.transform.LookAt(new Vector3(this.target.position.x, this.transform.position.y, this.target.position.z));
+            ui.transform.LookAt(_target);
+            transform.LookAt(new Vector3(_target.position.x, transform.position.y, _target.position.z));
         }
     }
 
     private void OnCollisionEnter(Collision other)
     {
-        if (other.gameObject.tag == "Player")
+        if (other.gameObject.CompareTag("Player"))
         {
-            this.touchingPlayer = true;
-            InvokeRepeating("DamagePlayer", 0f, 1f);
-            this.playerController = other.gameObject.GetComponent<PlayerController>();
+            touchingPlayer = true;
+            InvokeRepeating(nameof(DamagePlayer), 0f, 1f);
+            playerController = other.gameObject.GetComponent<PlayerController>();
         }
     }
 
     private void OnCollisionExit(Collision other)
     {
-        if (other.gameObject.tag == "Player")
+        if (other.gameObject.CompareTag("Player"))
         {
-            this.touchingPlayer = false;
-            CancelInvoke("DamagePlayer");
+            touchingPlayer = false;
+            CancelInvoke(nameof(DamagePlayer));
         }
     }
 
     public void DamagePlayer()
     {
-        this.playerController.TakeDamage(20);
+        playerController.TakeDamage(20);
     }
 
     public void TakeDamage(RaycastHit hit, float damageAmount)
     {
-        this.health = Mathf.Max(0, this.health - damageAmount);
-        this.healthBar.fillAmount = this.health / 100;
+        health = Mathf.Max(0, health - damageAmount);
+        healthBar.fillAmount = health / 100;
 
-        if (this.alive)
-            Instantiate(this.bloodEffect, hit.point, Quaternion.LookRotation(hit.normal));
+        if (alive)
+            Instantiate(bloodEffect, hit.point, Quaternion.LookRotation(hit.normal));
 
-        if (this.health == 0)
-            this.Die();
+        if (health == 0)
+            Die();
     }
 
-    public void Die()
+    private void Die()
     {
-        if (this.alive)
+        if (alive)
         {
-            this.alive = false;
-            this.gameObject.GetComponent<Rigidbody>().freezeRotation = true;
-            this.gameObject.GetComponent<BoxCollider>().center = new Vector3(0, 0.25f, 0);
-            this.gameObject.GetComponent<BoxCollider>().size = new Vector3(0.6f, 0.5f, 0.3f);
+            alive = false;
+            gameObject.GetComponent<Rigidbody>().freezeRotation = true;
+            gameObject.GetComponent<BoxCollider>().center = new Vector3(0, 0.25f, 0);
+            gameObject.GetComponent<BoxCollider>().size = new Vector3(0.6f, 0.5f, 0.3f);
             GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>().AddKill();
-            this.animator.SetBool("falling", true);
-            Destroy(this.gameObject, 3f);
+            animator.SetBool("falling", true);
+            Destroy(gameObject, 3f);
         }
     }
 }

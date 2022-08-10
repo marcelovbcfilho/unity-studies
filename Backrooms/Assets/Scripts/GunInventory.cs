@@ -1,218 +1,29 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public enum MenuStyle
 {
-    horizontal, vertical
+    horizontal,
+    vertical
 }
 
 public class GunInventory : MonoBehaviour
 {
     [Tooltip("Current weapon gameObject.")]
     public GameObject currentGun;
-    private Animator currentHAndsAnimator;
-    private int currentGunCounter = 0;
 
     [Tooltip("Put Strings of weapon objects from Resources Folder.")]
-    public List<string> gunsIHave = new List<string>();
-    [Tooltip("Icons from weapons.(Fetched when you run the game)*MUST HAVE ICONS WITH CORRESPONDING NAMES IN RESOUCES FOLDER*")]
+    public List<string> gunsIHave = new();
+
+    [Tooltip(
+        "Icons from weapons.(Fetched when you run the game)*MUST HAVE ICONS WITH CORRESPONDING NAMES IN RESOUCES FOLDER*")]
     public Texture[] icons;
 
-    [HideInInspector]
-    public float switchWeaponCooldown;
+    [HideInInspector] public float switchWeaponCooldown;
 
-    private Canvas ui;
-
-    public List<Image> inventorySlots = new List<Image>();
-
-    /*
-	 * Calling the method that will update the icons of our guns if we carry any upon start.
-	 * Also will spawn a weapon upon start.
-	 */
-    void Awake()
-    {
-        StartCoroutine("UpdateIconsFromResources");
-
-        StartCoroutine("SpawnWeaponUponStart");//to start with a gun
-
-        if (gunsIHave.Count == 0)
-            print("No guns in the inventory");
-
-
-        this.ui = FindObjectOfType<Canvas>();
-
-        this.inventorySlots.Add(GameObject.Find("first_weapon_slot").GetComponent<Image>());
-        this.inventorySlots.Add(GameObject.Find("second_weapon_slot").GetComponent<Image>());
-    }
-
-    /*
-	*Waits some time then calls for a waepon spawn
-	*/
-    IEnumerator SpawnWeaponUponStart()
-    {
-        yield return new WaitForSeconds(0.5f);
-        StartCoroutine("Spawn", 0);
-    }
-
-    /* 
-	 * Calculation switchWeaponCoolDown so it does not allow us to change weapons millions of times per second,
-	 * and at some point we will change the switchWeaponCoolDown to a negative value so we have to wait until it
-	 * overcomes 0.0f. 
-	 */
-    void Update()
-    {
-
-        switchWeaponCooldown += 1 * Time.deltaTime;
-        if (switchWeaponCooldown > 1.2f && Input.GetKey(KeyCode.LeftShift) == false)
-        {
-            Create_Weapon();
-        }
-
-    }
-
-
-    /*
-	 * Grabing the icons from the Resources/Weapo_Icons/ -> gun name of the image.
-	 * (!!!!!!!1!READ IMPORTANT) 
-	 * the weapon image to respond the weapon must have the same name as the WEAPON  with the extension _img.
-	 * So if the gun prefab is called "Sniper_Piper" the corresponding image must be located in the location form previous,
-	 * with the name "Sniper_Piper_img".
-	 */
-    IEnumerator UpdateIconsFromResources()
-    {
-        yield return new WaitForEndOfFrame();
-
-        icons = new Texture[gunsIHave.Count];
-        for (int i = 0; i < gunsIHave.Count; i++)
-        {
-            icons[i] = (Texture)Resources.Load("Weap_Icons/" + gunsIHave[i].ToString() + "_img");
-        }
-
-    }
-
-    /*
-	 * If used scroll mousewheel or arrows up and down the player will change weapon.
-	 * GunPlaceSpawner is child of Player gameObject, where the gun is going to spawn and transition to our
-	 * gun properties value.
-	 */
-    void Create_Weapon()
-    {
-
-        /*
-		 * Scrolling wheel waepons changing
-		 */
-        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetAxis("Mouse ScrollWheel") > 0)
-        {
-            switchWeaponCooldown = 0;
-
-            currentGunCounter++;
-            if (currentGunCounter > gunsIHave.Count - 1)
-            {
-                currentGunCounter = 0;
-            }
-            StartCoroutine("Spawn", currentGunCounter);
-        }
-        if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetAxis("Mouse ScrollWheel") < 0)
-        {
-            switchWeaponCooldown = 0;
-
-            currentGunCounter--;
-            if (currentGunCounter < 0)
-            {
-                currentGunCounter = gunsIHave.Count - 1;
-            }
-            StartCoroutine("Spawn", currentGunCounter);
-        }
-
-        /*
-		 * Keypad numbers
-		 */
-        if (Input.GetKeyDown(KeyCode.Alpha1) && currentGunCounter != 0)
-        {
-            switchWeaponCooldown = 0;
-            currentGunCounter = 0;
-            StartCoroutine("Spawn", currentGunCounter);
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha2) && currentGunCounter != 1)
-        {
-            switchWeaponCooldown = 0;
-            currentGunCounter = 1;
-            StartCoroutine("Spawn", currentGunCounter);
-        }
-
-    }
-
-    /*
-	 * This method is called from Create_Weapon() upon pressing arrow up/down or scrolling the mouse wheel,
-	 * It will check if we carry a gun and destroy it, and its then going to load a gun prefab from our Resources Folder.
-	 */
-    IEnumerator Spawn(int _redniBroj)
-    {
-        if (weaponChanging)
-            weaponChanging.Play();
-        else
-            print("Missing Weapon Changing music clip.");
-        if (currentGun)
-        {
-            if (currentGun.name.Contains("Gun"))
-            {
-
-                currentHAndsAnimator.SetBool("changingWeapon", true);
-
-                yield return new WaitForSeconds(0.8f);//0.8 time to change waepon, but since there is no change weapon animation there is no need to wait fo weapon taken down
-                Destroy(currentGun);
-
-                GameObject resource = (GameObject)Resources.Load(gunsIHave[_redniBroj].ToString());
-                currentGun = (GameObject)Instantiate(resource, transform.position, /*gameObject.transform.rotation*/Quaternion.identity);
-
-                foreach (Image inventorySlot in this.inventorySlots)
-                {
-                    inventorySlot.color = new Color32(255, 255, 255, 0);
-                }
-
-                inventorySlots[_redniBroj].color = new Color32(255, 255, 255, 255);
-
-                AssignHandsAnimator(currentGun);
-            }
-            else if (currentGun.name.Contains("Sword"))
-            {
-                currentHAndsAnimator.SetBool("changingWeapon", true);
-                yield return new WaitForSeconds(0.25f);//0.5f
-
-                currentHAndsAnimator.SetBool("changingWeapon", false);
-
-                yield return new WaitForSeconds(0.6f);//1
-                Destroy(currentGun);
-
-                GameObject resource = (GameObject)Resources.Load(gunsIHave[_redniBroj].ToString());
-                currentGun = (GameObject)Instantiate(resource, transform.position, /*gameObject.transform.rotation*/Quaternion.identity);
-                AssignHandsAnimator(currentGun);
-            }
-        }
-        else
-        {
-            GameObject resource = (GameObject)Resources.Load(gunsIHave[_redniBroj].ToString());
-            currentGun = (GameObject)Instantiate(resource, transform.position, /*gameObject.transform.rotation*/Quaternion.identity);
-
-            AssignHandsAnimator(currentGun);
-        }
-
-
-    }
-
-
-    /*
-	* Assigns Animator to the script so we can use it in other scripts of a current gun.
-	*/
-    void AssignHandsAnimator(GameObject _currentGun)
-    {
-        if (_currentGun.name.Contains("Gun"))
-        {
-            currentHAndsAnimator = currentGun.GetComponent<GunScript>().handsAnimator;
-        }
-    }
+    public List<Image> inventorySlots = new();
 
     /*
 	 * Unity buil-in method to draw GUI.
@@ -231,15 +42,197 @@ public class GunInventory : MonoBehaviour
 
     // }
 
-    [Header("GUI Gun preview variables")]
-    [Tooltip("Weapon icons style to pick.")]
+    [Header("GUI Gun preview variables")] [Tooltip("Weapon icons style to pick.")]
     public MenuStyle menuStyle = MenuStyle.horizontal;
-    [Tooltip("Spacing between icons.")]
-    public int spacing = 10;
+
+    [Tooltip("Spacing between icons.")] public int spacing = 10;
+
     [Tooltip("Begin position in percetanges of screen.")]
     public Vector2 beginPosition;
+
     [Tooltip("Size of icon in percetanges of screen.")]
     public Vector2 size;
+    //######################################################
+
+    /*
+	 * Sounds
+	 */
+    [Header("Sounds")] [Tooltip("Sound of weapon changing.")]
+    public AudioSource weaponChanging;
+
+    private int currentGunCounter;
+    private Animator currentHAndsAnimator;
+
+    private Canvas ui;
+
+    /*
+	 * Calling the method that will update the icons of our guns if we carry any upon start.
+	 * Also will spawn a weapon upon start.
+	 */
+    private void Awake()
+    {
+        StartCoroutine("UpdateIconsFromResources");
+
+        StartCoroutine("SpawnWeaponUponStart"); //to start with a gun
+
+        if (gunsIHave.Count == 0)
+            print("No guns in the inventory");
+
+
+        ui = FindObjectOfType<Canvas>();
+
+        inventorySlots.Add(GameObject.Find("first_weapon_slot").GetComponent<Image>());
+        inventorySlots.Add(GameObject.Find("second_weapon_slot").GetComponent<Image>());
+    }
+
+    /* 
+	 * Calculation switchWeaponCoolDown so it does not allow us to change weapons millions of times per second,
+	 * and at some point we will change the switchWeaponCoolDown to a negative value so we have to wait until it
+	 * overcomes 0.0f. 
+	 */
+    private void Update()
+    {
+        switchWeaponCooldown += 1 * Time.deltaTime;
+        if (switchWeaponCooldown > 1.2f && Input.GetKey(KeyCode.LeftShift) == false) Create_Weapon();
+    }
+
+    /*
+	*Waits some time then calls for a waepon spawn
+	*/
+    private IEnumerator SpawnWeaponUponStart()
+    {
+        yield return new WaitForSeconds(0.5f);
+        StartCoroutine("Spawn", 0);
+    }
+
+
+    /*
+	 * Grabing the icons from the Resources/Weapo_Icons/ -> gun name of the image.
+	 * (!!!!!!!1!READ IMPORTANT) 
+	 * the weapon image to respond the weapon must have the same name as the WEAPON  with the extension _img.
+	 * So if the gun prefab is called "Sniper_Piper" the corresponding image must be located in the location form previous,
+	 * with the name "Sniper_Piper_img".
+	 */
+    private IEnumerator UpdateIconsFromResources()
+    {
+        yield return new WaitForEndOfFrame();
+
+        icons = new Texture[gunsIHave.Count];
+        for (var i = 0; i < gunsIHave.Count; i++)
+            icons[i] = (Texture) Resources.Load("Weap_Icons/" + gunsIHave[i] + "_img");
+    }
+
+    /*
+	 * If used scroll mousewheel or arrows up and down the player will change weapon.
+	 * GunPlaceSpawner is child of Player gameObject, where the gun is going to spawn and transition to our
+	 * gun properties value.
+	 */
+    private void Create_Weapon()
+    {
+        /*
+		 * Scrolling wheel waepons changing
+		 */
+        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetAxis("Mouse ScrollWheel") > 0)
+        {
+            switchWeaponCooldown = 0;
+
+            currentGunCounter++;
+            if (currentGunCounter > gunsIHave.Count - 1) currentGunCounter = 0;
+            StartCoroutine("Spawn", currentGunCounter);
+        }
+
+        if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetAxis("Mouse ScrollWheel") < 0)
+        {
+            switchWeaponCooldown = 0;
+
+            currentGunCounter--;
+            if (currentGunCounter < 0) currentGunCounter = gunsIHave.Count - 1;
+            StartCoroutine("Spawn", currentGunCounter);
+        }
+
+        /*
+		 * Keypad numbers
+		 */
+        if (Input.GetKeyDown(KeyCode.Alpha1) && currentGunCounter != 0)
+        {
+            switchWeaponCooldown = 0;
+            currentGunCounter = 0;
+            StartCoroutine("Spawn", currentGunCounter);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2) && currentGunCounter != 1)
+        {
+            switchWeaponCooldown = 0;
+            currentGunCounter = 1;
+            StartCoroutine("Spawn", currentGunCounter);
+        }
+    }
+
+    /*
+	 * This method is called from Create_Weapon() upon pressing arrow up/down or scrolling the mouse wheel,
+	 * It will check if we carry a gun and destroy it, and its then going to load a gun prefab from our Resources Folder.
+	 */
+    private IEnumerator Spawn(int _redniBroj)
+    {
+        if (weaponChanging)
+            weaponChanging.Play();
+        else
+            print("Missing Weapon Changing music clip.");
+        if (currentGun)
+        {
+            if (currentGun.name.Contains("Gun"))
+            {
+                currentHAndsAnimator.SetBool("changingWeapon", true);
+
+                yield return
+                    new WaitForSeconds(
+                        0.8f); //0.8 time to change waepon, but since there is no change weapon animation there is no need to wait fo weapon taken down
+                Destroy(currentGun);
+
+                var resource = (GameObject) Resources.Load(gunsIHave[_redniBroj]);
+                currentGun = Instantiate(resource, transform.position, /*gameObject.transform.rotation*/
+                    Quaternion.identity);
+
+                foreach (var inventorySlot in inventorySlots) inventorySlot.color = new Color32(255, 255, 255, 0);
+
+                inventorySlots[_redniBroj].color = new Color32(255, 255, 255, 255);
+
+                AssignHandsAnimator(currentGun);
+            }
+            else if (currentGun.name.Contains("Sword"))
+            {
+                currentHAndsAnimator.SetBool("changingWeapon", true);
+                yield return new WaitForSeconds(0.25f); //0.5f
+
+                currentHAndsAnimator.SetBool("changingWeapon", false);
+
+                yield return new WaitForSeconds(0.6f); //1
+                Destroy(currentGun);
+
+                var resource = (GameObject) Resources.Load(gunsIHave[_redniBroj]);
+                currentGun = Instantiate(resource, transform.position, /*gameObject.transform.rotation*/
+                    Quaternion.identity);
+                AssignHandsAnimator(currentGun);
+            }
+        }
+        else
+        {
+            var resource = (GameObject) Resources.Load(gunsIHave[_redniBroj]);
+            currentGun = Instantiate(resource, transform.position, /*gameObject.transform.rotation*/
+                Quaternion.identity);
+
+            AssignHandsAnimator(currentGun);
+        }
+    }
+
+
+    /*
+	* Assigns Animator to the script so we can use it in other scripts of a current gun.
+	*/
+    private void AssignHandsAnimator(GameObject _currentGun)
+    {
+        if (_currentGun.name.Contains("Gun")) currentHAndsAnimator = currentGun.GetComponent<GunScript>().handsAnimator;
+    }
     /*
 	 * Passing the image number and gun list have the same sort,
 	 * so it will fitthe gun image to our current gun or guns we have.
@@ -298,28 +291,24 @@ public class GunInventory : MonoBehaviour
     {
         return Screen.width * var / 100;
     }
+
     private float position_y(float var)
     {
         return Screen.height * var / 100;
     }
+
     private float size_x(float var)
     {
         return Screen.width * var / 100;
     }
+
     private float size_y(float var)
     {
         return Screen.height * var / 100;
     }
+
     private Vector2 vec2(Vector2 _vec2)
     {
         return new Vector2(Screen.width * _vec2.x / 100, Screen.height * _vec2.y / 100);
     }
-    //######################################################
-
-    /*
-	 * Sounds
-	 */
-    [Header("Sounds")]
-    [Tooltip("Sound of weapon changing.")]
-    public AudioSource weaponChanging;
 }
